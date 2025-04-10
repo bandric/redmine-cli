@@ -5,9 +5,13 @@ class CustomField:
         self.is_required = kwargs.get("is_required")
         self.multiple = kwargs.get("multiple")
         self.default = kwargs.get("default_value")
-        self.possible_values = [p.get("value") for p in kwargs.get("possible_values")]
+        possible = kwargs.get("possible_values")
+        if possible == None:
+            self.possible_values = {}
+        else:
+            self.possible_values = [p.get("value") for p in kwargs.get("possible_values")]
 
     def __str__(self):
         row = f"{self.id:<4} {self.name:<20} required={self.is_required} multiple={self.multiple} default={self.default if self.default != '' else 'None'}\n"
-        row += f"possible_values={','.join(self.possible_values)}\n"
+        row += f"      possible_values={','.join(self.possible_values if self.possible_values != '' else 'None')}\n"
         return row
