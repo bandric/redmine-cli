@@ -44,16 +44,45 @@ class Redmine:
         return repr(self)
 
     def fetch(self, resource, **kwargs):
-        resp = requests.get(
-            urljoin(self.url, "{}.json".format(resource)),
-            params={"limit": 100, **kwargs},
-            headers=self.auth_header,
-            verify=self.ssl_verify,
-        )
+        if resource != "projects":
+            resp = requests.get(
+                urljoin(self.url, "{}.json".format(resource)),
+                params={"limit": 100, **kwargs},
+                headers=self.auth_header,
+                verify=self.ssl_verify,
+            )
 
-        resp.raise_for_status()
+            resp.raise_for_status()
 
-        return resp.json()
+            return resp.json()
+        else:
+            offset = 0
+            limit = 100
+            result = []
+            jsonresult = {}
+            while True:
+                resp = requests.get(
+                    urljoin(self.url, "{}.json".format(resource)),
+                    params={"limit": 100, **kwargs, "offset": offset},
+                    headers=self.auth_header,
+                    verify=self.ssl_verify,
+                )
+                resp.raise_for_status()
+                tmpjson = resp.json()
+                if resource == "projects":
+                    result += tmpjson["projects"]
+                    total_count = tmpjson["total_count"]
+
+                jsonresult = tmpjson
+
+                if offset + limit >= total_count:
+                    break
+
+                offset += limit
+
+            jsonresult['projects'] = result
+
+        return jsonresult
 
     def set_cache(self, cache_file, data):
         with open(cache_file, "w+") as cf:
